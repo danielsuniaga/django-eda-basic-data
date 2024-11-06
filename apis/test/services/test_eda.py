@@ -14,38 +14,8 @@ class TestServicesEda(TestCase):
 
         self.services = cases_eda.cases_eda()
 
-    def test_check_price_with_brand_max(self):
+    def test_check_status_account_with_gender(self):
 
-        result = self.services.check_price_with_brand_max()
+        result = self.services.check_status_account_with_gender()
 
-        print(result)
-
-    def test_check_price_with_brand_min(self):
-
-        result = self.services.check_price_with_brand_min()
-
-        print(result)
-
-    def test_check_price_max(self):
-
-        result = self.services.check_price_max()
-
-        print(result)
-
-    def test_check_price_min(self):
-
-        result = self.services.check_price_min()
-
-        print(result)
-
-    def test_check_moss_sold_brand(self):
-
-        result = self.services.check_most_sold_brand()
-
-        print(result)
-
-    def test_check_most_sold_brands(self):
-
-        result = self.services.check_most_sold_brands()
-
-        print(result)
+        return result

@@ -1,10 +1,8 @@
 import pandas as pd
-
 import pickle
-
 from decouple import config
-
 from sklearn.preprocessing import LabelEncoder
+import re
 
 class cases_data:
 
@@ -22,33 +20,25 @@ class cases_data:
 
         self.init_name_label_encoder()
 
-    def generate_dataframe(self,data):
+        self.init_label_encoder()
 
-        return pd.DataFrame([data])
+        self.init_name_dataset()
+
+        self.init_name_dataset_debug()
+
+        self.init_column_to_remove()
 
     def init_label_encoder(self):
 
         self.label_encoder = LabelEncoder()
 
-    def init_name_label_encoder(self):
+        return True
 
+    def init_name_label_encoder(self):
+        
         self.name_label_encoder = config("NAME_LABEL_ENCODER")
 
         return True
-    
-    def get_name_label_encoder(self):
-
-        return self.name_label_encoder
-
-    def init_name_dataset_debug(self):
-
-        self.name_dataset_debug = config("DEBUG_NAME_DATASET")
-
-        return True
-    
-    def get_name_dataset_debug(self):
-
-        return self.name_dataset_debug
 
     def init_column_to_remove(self):
 
@@ -56,37 +46,35 @@ class cases_data:
 
         return True
 
-    def get_column_to_remove(self):
-
-        return self.column_to_remove
-
     def init_name_dataset(self):
 
         self.name_dataset = config("NAME_DATASET")
 
-    def get_name_dataset(self):
+        return True
 
-        return self.name_dataset
-    
-    def check_cell_null(self, dataset):
+    def init_name_dataset_debug(self):
 
-        return dataset.isnull().sum()
-    
+        self.name_dataset_debug = config("DEBUG_NAME_DATASET")
+
+        return True
+
     def get_columns(self, dataset):
 
         return dataset.columns
-    
+
     def debug_dataset(self, dataset):
 
-        self.init_column_to_remove()
+        cols_to_remove = [col for col in self.column_to_remove if col in dataset.columns]
 
-        return dataset.drop(columns=self.get_column_to_remove())
-    
+        processed_df = dataset.drop(columns=cols_to_remove, errors='ignore')
+
+        processed_df.columns = processed_df.columns.str.replace('"', '').str.strip()
+
+        return processed_df
+
     def save_dataset(self, dataset):
 
-        self.init_name_dataset_debug()
-
-        dataset.to_csv(self.get_name_dataset_debug(), index=False)
+        dataset.to_csv(self.name_dataset_debug, index=False)
 
         return True
 
@@ -102,7 +90,7 @@ class cases_data:
 
     def save_label_encoder(self):
 
-        with open(self.get_name_label_encoder(), 'wb') as f:
+        with open(self.name_label_encoder, 'wb') as f:
 
             pickle.dump(self.label_encoder, f)
 
@@ -110,42 +98,58 @@ class cases_data:
 
     def load_label_encoder(self):
 
-        with open(self.get_name_label_encoder(), 'rb') as f:
+        with open(self.name_label_encoder, 'rb') as f:
 
             self.label_encoder = pickle.load(f)
 
         return True
-    
+
     def load_csv(self):
 
-        self.init_name_dataset()
+        return pd.read_csv(self.name_dataset)
 
-        return pd.read_csv(self.get_name_dataset())
-    
     def load_csv_debug(self):
 
-        self.init_name_dataset_debug()
+        return pd.read_csv(self.name_dataset_debug)
 
-        return pd.read_csv(self.get_name_dataset_debug())
+    def check_cell_null(self, dataset):
+
+        return dataset.isnull().sum()
+    
+    def debug_cvs_native(self):
+
+        with open(self.name_dataset, 'r') as file:
+
+            content = file.read()
+
+            cleaned_content = re.sub(r'[^A-Za-z0-9,._\n]', '', content)
+
+        with open(self.name_dataset, 'w') as file:
+
+            file.write(cleaned_content)
 
     def check_data(self):
 
-        self.init_label_encoder()
+        self.debug_cvs_native()
 
-        self.init_name_dataset()
+        df = self.load_csv()
 
-        df = pd.read_csv(self.get_name_dataset())
+        print("////////////////////////////////////////////////// COLUMNS")
 
-        print(df.head())
+        print(df.columns)
 
-        print(self.check_cell_null(df))
+        print("////////////////////////////////////////////////// HEAD")
 
-        print(self.get_columns(df))
+        print(df.head(20)) 
 
-        processed_df = self.apply_label_encoding(self.debug_dataset(df))
+        print("////////////////////////////////////////////////// FILL")
+
+        print(df['Customer_Age'])
+
+        print("////////////////////////////////////////////////// END")
+
+        processed_df = df
 
         self.save_dataset(processed_df)
 
         self.save_label_encoder()
-
-        return True
