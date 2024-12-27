@@ -128,6 +128,44 @@ class cases_data:
 
             file.write(cleaned_content)
 
+    def clasificar_edad(self,edad):
+
+        if edad < 30:
+
+            return "Baja"
+        
+        elif edad <= 50:
+
+            return "Media"
+        
+        else:
+
+            return "Alta"
+
+    def generate_number_person(self,df):
+
+        return len(df)
+    
+    def generate_number_profesionals(self,df):
+
+        return df['Profesin'].nunique()
+    
+    def generate_persona_for_profesion(self,df):
+
+        return df['Profesin'].value_counts()
+    
+    def generate_age_for_profession(self,df):
+
+        return df.groupby('Profesin')['Edad'].mean()
+    
+    def generate_abogados_menores(self,df):
+
+        return df[(df['Profesin'] == 'Abogado') & (df['Edad'] < 30)].shape[0]
+    
+    def add_dataframe_rango_edad(self,df):
+
+        return df['Edad'].apply(self.clasificar_edad)
+
     def check_data(self):
 
         self.debug_cvs_native()
@@ -142,14 +180,24 @@ class cases_data:
 
         print(df.head(20)) 
 
-        print("////////////////////////////////////////////////// FILL")
+        print("////////////////////////////////////////////////// ASKS")
+        
+        print("Número total de personas:", self.generate_number_person(df))
+        
+        print("Número de profesiones únicas:", self.generate_number_profesionals(df))
+        
+        print("Personas por profesión:\n", self.generate_persona_for_profesion(df))
+        
+        print("Edad promedio por profesión:\n", self.generate_age_for_profession(df))
+    
+        print("Abogados menores de 30 años:", self.generate_abogados_menores(df))
 
-        print(df['Customer_Age'])
+        print("Incorporación rango de edad:")
+
+        df['rango_edad'] = self.add_dataframe_rango_edad(df)
+        
+        print(df)
 
         print("////////////////////////////////////////////////// END")
 
-        processed_df = df
-
-        self.save_dataset(processed_df)
-
-        self.save_label_encoder()
+        return True
